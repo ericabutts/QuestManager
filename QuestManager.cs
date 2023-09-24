@@ -14,6 +14,7 @@ public class QuestManager : MonoBehaviour
         questNumber += 1;
         currentQuest = questList[questNumber];
         
+        
     }
 
     void Awake() {
