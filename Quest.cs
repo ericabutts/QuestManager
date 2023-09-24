@@ -2,22 +2,64 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+//[CreateAssetMenu(fileName = "Quest", menuName = "Quest System/Quest")]
 
+[System.Serializable]
 public class Quest : ScriptableObject
 {
     // public bool complete;
     public TextAsset questDialogue;
     public bool questIsComplete = false;
-    public List<QuestEntry> questEntriesArray;
-    List<QuestEntry> newQuestEntriesArray;
+
+    [SerializeField]
+    public List<QuestEntry> questEntriesArray = new List<QuestEntry>();
+
+
+    //quest entry data is a class used to make persistent objects in the inspector
+    [SerializeField]
+    public List<QuestEntryData> entryData = new List<QuestEntryData>();
+
+
+    private void OnEnable()
+    {
+        if (entryData.Count > 0) {
+            Debug.Log("Add entries to quest");
+            InitializeQuestEntries(entryData);
+        }
+        
+    }
+
+    public void InitializeQuestEntries(List<QuestEntryData> entryDataList)
+    {
+        questEntriesArray.Clear();
+
+        foreach (QuestEntryData entryData in entryDataList)
+        {
+            AddQuestEntry(entryData);
+        }
+    }
+
+    private void AddQuestEntry(QuestEntryData entryData)
+    {
+        QuestEntry newEntry = new QuestEntry();
+        newEntry.entryName = entryData.entryName;
+        newEntry.parentQuest = this;
+
+        questEntriesArray.Add(newEntry);
+    }
+
+
 
     public void startQuestDialogue () {
         Debug.Log("Begin dialogue of new quest.");
-        DialogueManager.Instance.startDialogue(questDialogue);
+        //set the new csv file in the dialogue manager
+        DialogueManager.Instance.csvFile = questDialogue;
+        DialogueManager.Instance.startDialogue();
     }
 
     public void questWasCompleted() {
         Debug.Log("Quest was completed!");
+        DialogueManager.Instance.csvFile = questDialogue;
         QuestManager.currentQuest.startQuestDialogue();
         QuestManager.questManager.advanceToNextQuest();
         
@@ -35,6 +77,7 @@ public class Quest : ScriptableObject
                     questIsComplete = true;
                     questWasCompleted();
                 }
+                Debug.Log("Remove entry.");
                 questEntriesArray.Remove(entry);
                 break;
             }
